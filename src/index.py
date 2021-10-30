@@ -3,10 +3,13 @@ import config
 from WebScore import WebScore
 from typing import List, Tuple
 import analyzer
+import crawler
+import asyncio
 
-def init():
+async def init():
     (urls, keywords) = read_input(config.file_input)
-    scores = analyzer.analyze(urls, keywords)
+    #await crawler.crawl(urls)
+    scores = await analyzer.analyze(urls, keywords)
     write_csv(config.csv_output, keywords, scores)
 
 def read_input(file: str) -> Tuple[List[str], List[str]]:
@@ -46,4 +49,4 @@ def get_row(score: WebScore):
     
     return final_dic
 
-init()
+asyncio.run(init())

@@ -8,7 +8,7 @@ import asyncio
 import aiofiles
 from bs4 import BeautifulSoup
 from typing import Dict, List, Tuple
-buffer = 100
+buffer = 400
 
 async def crawl(urls: str):
     while len(urls) > 0:
@@ -41,22 +41,22 @@ async def request_web(client: aiohttp.ClientSession, url: str) -> Tuple[bool, st
                 if (res.status < 200 or res.status >= 300):
                     err = True
                     msg = (await res.read()).decode('utf-8')
-                    print(f'--> ERR: {msg}')
+                    #print(f'--> ERR: {msg}')
                 else:
                     html = (await res.read()).decode('utf-8')
         except Exception as e:
             print(e)
             err = True
-            print(f'--> ERR: {e}')
+            #print(f'--> ERR: {e}')
 
         async with aiofiles.open(path, mode='w') as f:
             await f.write(html)
     
-    if err: return (False, '', [])
+    if err: return (err, '', [])
 
     soup = BeautifulSoup(html, 'html.parser')
     child_urls = [link.get('href') for link in soup.findAll('a')]
-    return (True, html, filter_urls(url, child_urls))
+    return (err, html, filter_urls(url, child_urls))
 
 def filter_urls(base_url: str, urls: List[str]):
     master_url = urlparse(base_url)

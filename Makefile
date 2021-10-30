@@ -8,3 +8,6 @@ install:
 
 source:
 	source env/vc/bin/activate
+
+url:
+	python src/index_v2.py
