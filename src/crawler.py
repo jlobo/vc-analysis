@@ -8,17 +8,21 @@ import asyncio
 import aiofiles
 from bs4 import BeautifulSoup
 from typing import Dict, List, Tuple
+from contextlib import redirect_stderr
+import os
 
-__buffer = 400
+__buffer = 2000
 __headers = { 'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:92.0) Gecko/20100101 Firefox/92.0' }
 __timeout = aiohttp.ClientTimeout(total=4)
 
 async def crawl(urls: str):
-    while len(urls) > 0:
-        tasks = [asyncio.ensure_future(crawl_web(url)) for url in urls[0:__buffer]]
-        del urls[0:__buffer]
-        await asyncio.gather(*tasks)
-        print(f'<-------- pending:{len(urls)}')
+    f = open(os.devnull, 'w')
+    with redirect_stderr(f):  # ignore any error output inside contex
+        while len(urls) > 0:
+            tasks = [asyncio.ensure_future(crawl_web(url)) for url in urls[0:__buffer]]
+            del urls[0:__buffer]
+            await asyncio.gather(*tasks)
+            print(f'<-------- pending:{len(urls)}')
 
 async def crawl_web(url: str) -> Tuple[bool, str, list]:
     async with aiohttp.ClientSession(timeout=__timeout) as clint:
@@ -43,8 +47,6 @@ async def request_web(client: aiohttp.ClientSession, url: str) -> Tuple[bool, st
             async with client.get(url_base, headers=__headers, allow_redirects=True) as res:
                 if (res.status < 200 or res.status >= 300):
                     err = True
-                    msg = (await res.read()).decode('utf-8')
-                    #print(f'--> ERR: {msg}')
                 else:
                     html = (await res.read()).decode('utf-8')
         except Exception as e:
